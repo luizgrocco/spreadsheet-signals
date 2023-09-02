@@ -112,7 +112,6 @@ export const executeInAgregationFunctionsContext = (
   _sheet: SheetType,
   jsFormula: string
 ) => {
-  console.log(jsFormula);
   // Agregation functions, which must be in the same context as the `eval`.
   const SUM = (refs: number[][]) =>
     refs.flat(2).reduce((acc, item) => acc + item, 0);
