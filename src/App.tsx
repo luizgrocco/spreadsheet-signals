@@ -1,10 +1,53 @@
 import "./App.css";
-import { SheetType, colAsLabel, evaluateFormula } from "./utils";
+import { Cell, SheetType, colAsLabel, evaluateFormula } from "./utils";
 import { createMemo } from "./signals";
 
 const COLS = 5;
 const ROWS = 15;
 const grid = Array.from({ length: ROWS }, () => Array.from({ length: COLS }));
+
+class Sheet<T> {
+  cells: Cell<T>[];
+
+  constructor(cells: Cell<T>[] = []) {
+    this.cells = cells;
+  }
+
+  insert(cell: Cell<T>) {
+    this.cells.push(cell);
+  }
+
+  get(id: Cell<T>["cellId"]): Cell<T> | null {
+    let low = 0;
+    let high = this.cells.length - 1;
+    let mid;
+    let middleEl;
+    while (low <= high) {
+      mid = Math.floor(low + high / 2);
+      middleEl = this.cells[mid];
+
+      if (middleEl.cellId === id) {
+        return middleEl;
+      } else if (middleEl.cellId < id) {
+        high = mid - 1;
+      } else {
+        low = mid + 1;
+      }
+    }
+    return null;
+  }
+
+  getOrDefault(id: Cell<T>["cellId"]) {
+    return (
+      this.get(id) || {
+        cellId: id,
+        originalContent: "",
+        computed: createMemo(() => 0),
+      }
+    );
+  }
+}
+
 const sheet: SheetType = {};
 
 function App() {
