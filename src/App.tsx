@@ -1,5 +1,11 @@
 import "./App.css";
-import { Cell, SheetType, colAsLabel, evaluateFormula } from "./utils";
+import {
+  Cell,
+  SheetType,
+  colAsLabel,
+  evaluateFormula,
+  compareCells,
+} from "./utils";
 import { createMemo } from "./signals";
 
 const COLS = 5;
@@ -10,11 +16,14 @@ class Sheet<T> {
   cells: Cell<T>[];
 
   constructor(cells: Cell<T>[] = []) {
-    this.cells = cells;
+    this.cells = cells.sort((cellA, cellB) =>
+      compareCells(cellA.cellId, cellB.cellId)
+    );
   }
 
-  insert(cell: Cell<T>) {
+  insert(cell: Cell<T>): Cell<T> {
     this.cells.push(cell);
+    return cell;
   }
 
   get(id: Cell<T>["cellId"]): Cell<T> | null {
@@ -26,9 +35,9 @@ class Sheet<T> {
       mid = Math.floor(low + high / 2);
       middleEl = this.cells[mid];
 
-      if (middleEl.cellId === id) {
+      if (compareCells(middleEl.cellId, id) === 0) {
         return middleEl;
-      } else if (middleEl.cellId < id) {
+      } else if (compareCells(middleEl.cellId, id) === -1) {
         high = mid - 1;
       } else {
         low = mid + 1;
@@ -37,13 +46,14 @@ class Sheet<T> {
     return null;
   }
 
-  getOrDefault(id: Cell<T>["cellId"]) {
+  getOrDefault(id: Cell<T>["cellId"]): Cell<T> | Cell<number> {
     return (
-      this.get(id) || {
+      this.get(id) ||
+      this.insert({
         cellId: id,
         originalContent: "",
         computed: createMemo(() => 0),
-      }
+      })
     );
   }
 }

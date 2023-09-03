@@ -1,6 +1,5 @@
 import { createMemoType } from "./signals";
 
-// Code gotten from Cassiano
 const times = <T>(n: number, fn: (index: number) => T): T[] =>
   [...Array(n).keys()].map((i) => fn(i));
 
@@ -12,19 +11,19 @@ interface CoordsInterface {
   labelCol?: string;
 }
 
-type LetterType = string;
-type ColRefType = string;
-type RowColType = [number, number];
+type Letter = string;
+type ColId = string;
+type RowId = [number, number];
 export type CellId = string;
-type RefOrRowColType = CellId | RowColType;
+type CellOrRowColType = CellId | RowId;
 
 // Converts 'A' to 1, 'B' to 2... 'Z' to 26.
-export const colIndexFromSingleLetter = (colSingleRef: LetterType): number => {
+export const colIndexFromSingleLetter = (colSingleRef: Letter): number => {
   return colSingleRef.charCodeAt(0) - "A".charCodeAt(0) + 1;
 };
 
 // Converts 'A' to 1, 'B' to 2... 'Z' to 26, 'AA' to 27 etc
-export const colIndexFromLabel = (colRef: ColRefType): number => {
+export const colIndexFromLabel = (colRef: ColId): number => {
   return colRef
     .split("")
     .reduce(
@@ -37,14 +36,12 @@ export const colIndexFromLabel = (colRef: ColRefType): number => {
 };
 
 // Converts 1 to 'A', 2 to 'B'... 26 to 'Z'.
-const colSingleLetter = (colIndex: number): LetterType => {
+const colSingleLetter = (colIndex: number): Letter => {
   return String.fromCharCode(colIndex - 1 + "A".charCodeAt(0));
 };
 
 // Converts 1 to 'A', 2 to 'B'... 26 to 'Z', 27 to 'AA' etc
-export const colAsLabel = (
-  colIndexOrLabel: number | ColRefType
-): ColRefType => {
+export const colAsLabel = (colIndexOrLabel: number | ColId): ColId => {
   if (typeof colIndexOrLabel === "string") return colIndexOrLabel;
 
   let colIndex = colIndexOrLabel - 1;
@@ -67,7 +64,7 @@ const rowColFromRef = (ref: CellId): CoordsInterface => {
   return { row, col };
 };
 
-const asCoords = (refOrCoords: RefOrRowColType): CoordsInterface => {
+const asCoords = (refOrCoords: CellOrRowColType): CoordsInterface => {
   let row: number, col: number;
 
   if (refOrCoords instanceof Array) [row, col] = refOrCoords;
@@ -78,7 +75,7 @@ const asCoords = (refOrCoords: RefOrRowColType): CoordsInterface => {
   return { row, col, labelCol: colAsLabel(col) };
 };
 
-const asRef = (refOrCoords: RefOrRowColType): CellId => {
+const asRef = (refOrCoords: CellOrRowColType): CellId => {
   const { row, col } = asCoords(refOrCoords);
 
   return colAsLabel(col) + String(row);
@@ -139,3 +136,28 @@ export const evaluateFormula = (_sheet: SheetType, formula: string) => {
 
   return executeInAgregationFunctionsContext(_sheet, jsFormula);
 };
+
+export function compareCells(idA: CellId, idB: CellId) {
+  const aRowNo = idA.match(/\d+$/);
+  const bRowNo = idB.match(/\d+$/);
+
+  if (!aRowNo) throw new Error(`${idA} is not a valid cell id`);
+  if (!bRowNo) throw new Error(`${idB} is not a valid cell id`);
+
+  if (aRowNo[0] > bRowNo[0]) {
+    return 1;
+  } else if (aRowNo[0] < bRowNo[0]) {
+    return -1;
+  } else {
+    const aColumnLetters = idA.match(/^[a-zA-Z]/);
+    const bColumnLetters = idB.match(/^[a-zA-Z]/);
+
+    if (!aColumnLetters) throw new Error(`${idA} is not a valid cell id`);
+    if (!bColumnLetters) throw new Error(`${idB} is not a valid cell id`);
+
+    const a = colIndexFromLabel(aColumnLetters[0]);
+    const b = colIndexFromLabel(bColumnLetters[0]);
+
+    return a - b;
+  }
+}
