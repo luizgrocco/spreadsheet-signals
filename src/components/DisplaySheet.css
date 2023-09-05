@@ -1,0 +1,59 @@
+.sheet {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+
+.grid-row {
+  width: 100%;
+  height: 25px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-cell {
+  font-weight: 500;
+  text-align: right;
+  color: black;
+  background-color: white;
+  border: 1px solid rgb(0, 0, 0);
+  border-radius: 5px;
+  width: 150px;
+  height: 100%;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+.grid-cell:hover {
+  box-shadow: 0 0 3px 2px rgba(102, 175, 233, 1);
+  border: 1px solid rgba(102, 175, 233, 1);
+  outline: none;
+}
+
+.grid-cell:focus {
+  text-align: left;
+}
+
+.grid-cell::selection {
+  background: rgb(171, 209, 240);
+}
+
+.grid-letter-label {
+  width: 156px;
+  color: black;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.grid-number-label {
+  text-align: center;
+  width: 30px;
+  color: black;
+  font-size: 18px;
+  font-weight: 650;
+}
