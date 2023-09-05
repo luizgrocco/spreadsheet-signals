@@ -1,21 +1,15 @@
-import { createMemoType } from "./signals";
+import {
+  CellId,
+  CellOrRowColType,
+  ColId,
+  CoordsInterface,
+  Letter,
+} from "./models";
 
 const times = <T>(n: number, fn: (index: number) => T): T[] =>
   [...Array(n).keys()].map((i) => fn(i));
 
 const ALPHABET_LENGTH = "Z".charCodeAt(0) - "A".charCodeAt(0) + 1;
-
-interface CoordsInterface {
-  row: number;
-  col: number;
-  labelCol?: string;
-}
-
-type Letter = string;
-type ColId = string;
-type RowId = [number, number];
-export type CellId = string;
-type CellOrRowColType = CellId | RowId;
 
 // Converts 'A' to 1, 'B' to 2... 'Z' to 26.
 export const colIndexFromSingleLetter = (colSingleRef: Letter): number => {
@@ -84,57 +78,13 @@ const asRef = (refOrCoords: CellOrRowColType): CellId => {
 const range = (from: number, to: number) =>
   times(to - from + 1, (i) => i + from);
 
-const expandRange = (from: CellId, to: CellId) => {
+export const expandRange = (from: CellId, to: CellId) => {
   const fromCoords = asCoords(from);
   const toCoords = asCoords(to);
 
   return range(fromCoords.row, toCoords.row).map((row) =>
     range(fromCoords.col, toCoords.col).map((col) => asRef([row, col]))
   );
-};
-
-type Contents = string;
-
-export type Cell<T> = {
-  cellId: CellId;
-  originalContent: Contents;
-  computed: createMemoType<T>;
-};
-
-export type SheetType = {
-  [ref: CellId]: Cell<number>;
-};
-
-export const executeInAgregationFunctionsContext = (
-  _sheet: SheetType,
-  jsFormula: string
-) => {
-  // Agregation functions, which must be in the same context as the `eval`.
-  const SUM = (refs: number[][]) =>
-    refs.flat(2).reduce((acc, item) => acc + item, 0);
-  const COUNT = (refs: number[][]) => refs.flat(2).length;
-  const MULT = (refs: number[][]) =>
-    refs.flat(2).reduce((acc, item) => acc * item, 1);
-  const AVG = (refs: number[][]) => SUM(refs) / COUNT(refs);
-  const MAX = (refs: number[][]) => Math.max(...refs.flat(2));
-  const MIN = (refs: number[][]) => Math.min(...refs.flat(2));
-  const COLS = (refs: number[][]) => (refs[0] ?? []).length;
-  const ROWS = (refs: number[][]) => refs.length;
-
-  return eval(jsFormula);
-};
-
-export const evaluateFormula = (_sheet: SheetType, formula: string) => {
-  const jsFormula = formula
-    .slice(1)
-    // Expand all ranges to 2D matrices of refs.
-    .replace(/\b([a-z]+\d+):([a-z]+\d+)\b/gi, (_, from, to) =>
-      JSON.stringify(expandRange(from, to)).replaceAll('"', "")
-    )
-    // Replace all refs by corresponding signal calls.
-    .replaceAll(/\b([a-z]+\d+)\b/gi, `(_sheet['$1'].computed())`);
-
-  return executeInAgregationFunctionsContext(_sheet, jsFormula);
 };
 
 export function compareCells(idA: CellId, idB: CellId) {
@@ -149,8 +99,8 @@ export function compareCells(idA: CellId, idB: CellId) {
   } else if (aRowNo[0] < bRowNo[0]) {
     return -1;
   } else {
-    const aColumnLetters = idA.match(/^[a-zA-Z]/);
-    const bColumnLetters = idB.match(/^[a-zA-Z]/);
+    const aColumnLetters = idA.match(/^[A-Z]/);
+    const bColumnLetters = idB.match(/^[A-Z]/);
 
     if (!aColumnLetters) throw new Error(`${idA} is not a valid cell id`);
     if (!bColumnLetters) throw new Error(`${idB} is not a valid cell id`);
@@ -161,3 +111,6 @@ export function compareCells(idA: CellId, idB: CellId) {
     return a - b;
   }
 }
+
+export const getCellIdFromRowCol = (row: number, col: number) =>
+  (colAsLabel(col + 1) + String(row + 1)).toUpperCase();
