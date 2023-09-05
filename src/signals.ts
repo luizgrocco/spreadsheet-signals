@@ -118,9 +118,7 @@ export class Computed<T> implements Subject, Observer {
   update(): void {
     Runtime.updateObserverWithRuntime(this, () => {
       // Run this Observer and cache it's value
-      console.log({ myFunc: this.updateFn });
       const newValue = this.updateFn();
-      console.log({ myNewValue: newValue });
       const valueHasChanged = newValue !== this.value;
 
       if (valueHasChanged || this.skipMemo) {
