@@ -108,8 +108,6 @@ export class Sheet<T> {
 
     const createMemo1 = createMemo;
 
-    console.log({ jsFormula });
-
     return eval(jsFormula);
   };
 
