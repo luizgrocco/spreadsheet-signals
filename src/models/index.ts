@@ -1,4 +1,4 @@
-import { createMemo, createMemoType } from "../signals";
+import { createMemo as createComputed, createMemoType } from "../signals";
 import { compareCells, expandRange } from "../utils";
 
 export interface CoordsInterface {
@@ -106,7 +106,7 @@ export class Sheet<T> {
     const COLS = this.COLS;
     const ROWS = this.ROWS;
 
-    const createMemo1 = createMemo;
+    const createMemo = createComputed;
 
     return eval(jsFormula);
   };
@@ -121,7 +121,7 @@ export class Sheet<T> {
       // Replace all refs by corresponding signal calls.
       .replaceAll(
         /\b([a-z]+\d+)\b/gi,
-        `(this.getOrDefault('$1'.toUpperCase(), {cellId: '$1'.toUpperCase(), originalContent: "", computed: createMemo1(() => 0)}).computed())`
+        `(this.getOrDefault('$1'.toUpperCase(), {cellId: '$1'.toUpperCase(), originalContent: "", computed: createMemo(() => 0)}).computed())`
       );
 
     return this.executeInAgregationFunctionsContext(jsFormula);

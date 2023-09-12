@@ -57,18 +57,26 @@ export function DisplaySheet({ sheet }: { sheet: Sheet<number> }) {
     };
 
   return (
-    <div className="sheet">
-      <div className="grid-row">
-        <div className="grid-number-label" />
+    <div className="w-full h-full flex flex-col justify-center">
+      <div className="w-full h-6 flex gap-2 justify-center items-center">
+        <div className="text-center w-7 text-black text-lg font-semibold" />
         {Array.from({ length: COLS }).map((_, colIndex) => (
-          <div className="grid-letter-label" key={colIndex}>
+          <div
+            className="w-36 text-black text-center text-lg font-semibold"
+            key={colIndex}
+          >
             {colAsLabel(colIndex + 1)}
           </div>
         ))}
       </div>
       {grid.map((row, rowIndex) => (
-        <div key={rowIndex} className="grid-row">
-          <div className="grid-number-label">{rowIndex + 1}</div>
+        <div
+          key={rowIndex}
+          className="w-full h-6 flex gap-2 justify-center items-center"
+        >
+          <div className="text-center w-7 text-black text-lg font-semibold">
+            {rowIndex + 1}
+          </div>
           {row.map((_, colIndex) => (
             <input
               type="text"
