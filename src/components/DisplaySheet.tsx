@@ -3,10 +3,61 @@ import { colAsLabel, getCellIdFromRowCol } from "../utils";
 import { createMemo } from "../signals";
 import { Sheet } from "../models";
 import { FocusEvent, useCallback } from "react";
+import React from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 const COLS = 10;
 const ROWS = 20;
 const grid = Array.from({ length: ROWS }, () => Array.from({ length: COLS }));
+
+function GridVirtualizerVariable() {
+  const parentRef = React.useRef(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: 10000,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 24,
+    overscan: 5,
+  });
+
+  const columnVirtualizer = useVirtualizer({
+    horizontal: true,
+    count: 10000,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 96,
+    overscan: 5,
+  });
+
+  return (
+    <>
+      <div ref={parentRef} className="overflow-auto">
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: `${columnVirtualizer.getTotalSize()}px`,
+            position: "relative",
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+            <React.Fragment key={virtualRow.index}>
+              {columnVirtualizer.getVirtualItems().map((virtualColumn) => (
+                <div
+                  key={virtualColumn.index}
+                  className="w-24 h-6 absolute top-0 left-0"
+                  style={{
+                    transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  Cell {virtualRow.index}, {virtualColumn.index}
+                </div>
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
 export function DisplaySheet({ sheet }: { sheet: Sheet<number> }) {
   const focusHandler = useCallback(
@@ -58,7 +109,8 @@ export function DisplaySheet({ sheet }: { sheet: Sheet<number> }) {
 
   return (
     <div className="w-full h-full flex flex-col justify-center">
-      <div className="w-full h-6 flex gap-2 justify-center items-center">
+      <GridVirtualizerVariable />
+      {/* <div className="w-full h-6 flex gap-2 justify-center items-center">
         <div className="text-center w-7 text-black text-lg font-semibold" />
         {Array.from({ length: COLS }).map((_, colIndex) => (
           <div
@@ -90,7 +142,7 @@ export function DisplaySheet({ sheet }: { sheet: Sheet<number> }) {
             />
           ))}
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }

@@ -10,7 +10,7 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className="h-full w-full flex flex-col">
       <button onClick={printSheet}>Print Sheet</button>
       <div>{JSON.stringify(sheet.cells.map((cell) => cell.cellId))}</div>
       <DisplaySheet sheet={sheet} />
