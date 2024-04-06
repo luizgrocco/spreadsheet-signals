@@ -95,7 +95,7 @@ export class Sheet<T> {
   }
 
   // Evaluation in Excel context
-  executeInAgregationFunctionsContext = (jsFormula: string): number => {
+  executeInExcelContext = (jsFormula: string): number => {
     // Agregation functions, which must be in the same context as the `eval`.
     const SUM = this.SUM;
     const COUNT = this.COUNT;
@@ -124,6 +124,6 @@ export class Sheet<T> {
         `(this.getOrDefault('$1'.toUpperCase(), {cellId: '$1'.toUpperCase(), originalContent: "", computed: createMemo(() => 0)}).computed())`
       );
 
-    return this.executeInAgregationFunctionsContext(jsFormula);
+    return this.executeInExcelContext(jsFormula);
   }
 }
