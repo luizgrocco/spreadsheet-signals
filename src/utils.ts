@@ -113,4 +113,4 @@ export function compareCells(idA: CellId, idB: CellId) {
 }
 
 export const getCellIdFromRowCol = (row: number, col: number) =>
-  (colAsLabel(col + 1) + String(row + 1)).toUpperCase();
+  (colAsLabel(col) + String(row)).toUpperCase();
