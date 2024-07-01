@@ -1,4 +1,3 @@
-import "./App.css";
 import { DisplaySheet } from "./components/DisplaySheet";
 import { Sheet } from "./models";
 
@@ -11,8 +10,9 @@ function App() {
 
   return (
     <div className="h-full w-full flex flex-col">
-      <button onClick={printSheet}>Print Sheet</button>
-      <div>{JSON.stringify(sheet.cells.map((cell) => cell.cellId))}</div>
+      <button className="h-[5%]" onClick={printSheet}>
+        Print Sheet
+      </button>
       <DisplaySheet sheet={sheet} />
     </div>
   );
