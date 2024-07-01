@@ -69,33 +69,33 @@ export class Sheet<T> {
   }
 
   // Excel functions
-  SUM(refs: number[][]) {
+  private SUM(refs: number[][]) {
     return refs.flat(2).reduce((acc, item) => acc + item, 0);
   }
-  COUNT(refs: number[][]) {
+  private COUNT(refs: number[][]) {
     return refs.flat(2).length;
   }
-  MULT(refs: number[][]) {
+  private MULT(refs: number[][]) {
     return refs.flat(2).reduce((acc, item) => acc * item, 1);
   }
-  AVG(refs: number[][]) {
+  private AVG(refs: number[][]) {
     return this.SUM(refs) / this.COUNT(refs);
   }
-  MAX(refs: number[][]) {
+  private MAX(refs: number[][]) {
     return Math.max(...refs.flat(2));
   }
-  MIN(refs: number[][]) {
+  private MIN(refs: number[][]) {
     return Math.min(...refs.flat(2));
   }
-  COLS(refs: number[][]) {
+  private COLS(refs: number[][]) {
     return (refs[0] ?? []).length;
   }
-  ROWS(refs: number[][]) {
+  private ROWS(refs: number[][]) {
     refs.length;
   }
 
   // Evaluation in Excel context
-  executeInExcelContext = (jsFormula: string): number => {
+  private executeInExcelContext = (jsFormula: string): number => {
     // Agregation functions, which must be in the same context as the `eval`.
     const SUM = this.SUM;
     const COUNT = this.COUNT;
