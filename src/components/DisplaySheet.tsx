@@ -1,65 +1,47 @@
-import "./DisplaySheet.css";
 import { colAsLabel, getCellIdFromRowCol } from "../utils";
 import { createMemo } from "../signals";
 import { Sheet } from "../models";
-import { FocusEvent, useCallback } from "react";
+import {
+  FocusEvent,
+  KeyboardEventHandler,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import React from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
 
-const COLS = 10;
-const ROWS = 20;
-const grid = Array.from({ length: ROWS }, () => Array.from({ length: COLS }));
+function GridVirtualizerDynamic({ sheet }: { sheet: Sheet<number> }) {
+  const [, forceStateUpdate] = useState(true);
+  const forceUpdate = useCallback(
+    () => forceStateUpdate((state) => !state),
+    []
+  );
 
-function GridVirtualizerVariable() {
-  const parentRef = React.useRef(null);
-
+  const parentRef = useRef(null);
   const rowVirtualizer = useVirtualizer({
-    count: 10000,
+    count: 1000,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 24,
-    overscan: 5,
+    rangeExtractor: (range) => {
+      const [, ...defaultRange] = defaultRangeExtractor(range);
+      const pinnedRange = new Set([0, ...defaultRange]);
+      return [...pinnedRange];
+    },
   });
 
   const columnVirtualizer = useVirtualizer({
     horizontal: true,
-    count: 10000,
+    count: 100,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 96,
-    overscan: 5,
+    estimateSize: (i) => (i === 0 ? 50 : 96),
+    rangeExtractor: (range) => {
+      const [, ...defaultRange] = defaultRangeExtractor(range);
+      const pinnedRange = new Set([0, ...defaultRange]);
+      return [...pinnedRange];
+    },
   });
 
-  return (
-    <>
-      <div ref={parentRef} className="overflow-auto">
-        <div
-          style={{
-            height: `${rowVirtualizer.getTotalSize()}px`,
-            width: `${columnVirtualizer.getTotalSize()}px`,
-            position: "relative",
-          }}
-        >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => (
-            <React.Fragment key={virtualRow.index}>
-              {columnVirtualizer.getVirtualItems().map((virtualColumn) => (
-                <div
-                  key={virtualColumn.index}
-                  className="w-24 h-6 absolute top-0 left-0"
-                  style={{
-                    transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
-                  }}
-                >
-                  Cell {virtualRow.index}, {virtualColumn.index}
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-}
-
-export function DisplaySheet({ sheet }: { sheet: Sheet<number> }) {
   const focusHandler = useCallback(
     (rowIndex: number, colIndex: number) =>
       (event: FocusEvent<HTMLInputElement>) => {
@@ -70,46 +52,170 @@ export function DisplaySheet({ sheet }: { sheet: Sheet<number> }) {
         }
         event.target.select();
       },
-    [sheet]
+    []
   );
 
-  const blurHandler =
+  const onKeyDownHandler: KeyboardEventHandler<HTMLInputElement> = useCallback(
+    (event) => {
+      if (event.key === "Enter") event.currentTarget.blur();
+    },
+    []
+  );
+
+  const blurHandler = useCallback(
     (rowIndex: number, colIndex: number) =>
-    (event: FocusEvent<HTMLInputElement>) => {
-      const cellId = getCellIdFromRowCol(rowIndex, colIndex);
-      const cell = sheet.get(cellId);
+      (event: FocusEvent<HTMLInputElement>) => {
+        const cellId = getCellIdFromRowCol(rowIndex, colIndex);
+        const cell = sheet.get(cellId);
 
-      const originalContents = event.target.value;
-      const updateFn = event.target.value.startsWith("=")
-        ? () => {
-            const value = sheet.evaluateFormula(originalContents);
-            event.target.value = String(value);
-            return value;
-          }
-        : () => {
-            const value = Number(originalContents);
-            event.target.value = String(value);
-            return value;
-          };
+        const inputContent = event.target.value;
+        const updateFn = event.target.value.startsWith("=")
+          ? () => {
+              const value = sheet.evaluateFormula(inputContent);
+              event.target.value = String(value);
+              return value;
+            }
+          : () => {
+              const value = Number(inputContent);
+              event.target.value = String(value);
+              return value;
+            };
 
-      if (!cell) {
-        if (originalContents === "") return;
-        sheet.insert({
-          cellId,
-          originalContent: originalContents,
-          computed: createMemo(updateFn),
-        });
-      } else {
-        cell.originalContent = originalContents;
-        originalContents === ""
-          ? cell.computed.set(() => 0)
-          : cell.computed.set(updateFn);
-      }
-    };
+        if (!cell) {
+          if (inputContent === "") return;
+          sheet.insert({
+            cellId,
+            originalContent: inputContent,
+            computed: createMemo(updateFn),
+          });
+        } else {
+          cell.originalContent = inputContent;
+          inputContent === ""
+            ? cell.computed.set(() => 0)
+            : cell.computed.set(updateFn);
+        }
+
+        forceUpdate();
+      },
+    []
+  );
 
   return (
-    <div className="w-full h-full flex flex-col justify-center">
-      <GridVirtualizerVariable />
+    <div ref={parentRef} className="relative overflow-auto">
+      <div
+        className="relative border border-opacity-30 border-gray-400"
+        style={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          width: `${columnVirtualizer.getTotalSize()}px`,
+        }}
+      >
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+          <React.Fragment key={virtualRow.key}>
+            {columnVirtualizer.getVirtualItems().map((virtualColumn) => (
+              <React.Fragment key={virtualColumn.key}>
+                {virtualColumn.index !== 0 && virtualRow.index !== 0 ? (
+                  <input
+                    className="absolute top-0 left-0 font-normal text-right bg-white border border-opacity-20 border-gray-400 transition-shadow duration-100 ease-in-out hover:shadow-md hover:border-blue-400 focus:outline-none focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-400 focus-within:ring-inset p-1 text-sm"
+                    style={{
+                      width: `${virtualColumn.size}px`,
+                      height: `${virtualRow.size}px`,
+                      transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
+                    }}
+                    onKeyDown={onKeyDownHandler}
+                    onFocus={focusHandler(
+                      virtualRow.index,
+                      virtualColumn.index
+                    )}
+                    onBlur={blurHandler(virtualRow.index, virtualColumn.index)}
+                    defaultValue={
+                      sheet
+                        .get(
+                          getCellIdFromRowCol(
+                            virtualRow.index,
+                            virtualColumn.index
+                          )
+                        )
+                        ?.computed() ?? ""
+                    }
+                  />
+                ) : virtualRow.index === 0 && virtualColumn.index === 0 ? (
+                  <div
+                    className="sticky z-50 top-0 left-0 font-normal text-center bg-white border border-opacity-20 border-gray-400 p-1 text-sm"
+                    style={{
+                      width: `${virtualColumn.size}px`,
+                      height: `${virtualRow.size}px`,
+                    }}
+                  ></div>
+                ) : virtualColumn.index === 0 ? (
+                  <div
+                    className="mt-[-24px] sticky z-10 left-0 font-normal text-center bg-white border border-opacity-20 border-gray-400 p-1 text-sm"
+                    style={{
+                      width: `${virtualColumn.size}px`,
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    {virtualRow.index}
+                  </div>
+                ) : (
+                  <div
+                    className="mt-[-24px] sticky z-10 top-0 font-normal text-center bg-white border border-opacity-20 border-gray-400 p-1 text-sm"
+                    style={{
+                      width: `${virtualColumn.size}px`,
+                      height: `${virtualRow.size}px`,
+                      transform: `translateX(${virtualColumn.start}px) `,
+                    }}
+                  >
+                    {colAsLabel(virtualColumn.index)}
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function DisplaySheet({ sheet }: { sheet: Sheet<number> }) {
+  // const blurHandler =
+  //   (rowIndex: number, colIndex: number) =>
+  //   (event: FocusEvent<HTMLInputElement>) => {
+  //     const cellId = getCellIdFromRowCol(rowIndex, colIndex);
+  //     const cell = sheet.get(cellId);
+
+  //     const originalContents = event.target.value;
+  //     const updateFn = event.target.value.startsWith("=")
+  //       ? () => {
+  //           const value = sheet.evaluateFormula(originalContents);
+  //           event.target.value = String(value);
+  //           return value;
+  //         }
+  //       : () => {
+  //           const value = Number(originalContents);
+  //           event.target.value = String(value);
+  //           return value;
+  //         };
+
+  //     if (!cell) {
+  //       if (originalContents === "") return;
+  //       sheet.insert({
+  //         cellId,
+  //         originalContent: originalContents,
+  //         computed: createMemo(updateFn),
+  //       });
+  //     } else {
+  //       cell.originalContent = originalContents;
+  //       originalContents === ""
+  //         ? cell.computed.set(() => 0)
+  //         : cell.computed.set(updateFn);
+  //     }
+  //   };
+
+  return (
+    <div className="w-full h-[95%] flex justify-center">
+      <GridVirtualizerDynamic sheet={sheet} />
       {/* <div className="w-full h-6 flex gap-2 justify-center items-center">
         <div className="text-center w-7 text-black text-lg font-semibold" />
         {Array.from({ length: COLS }).map((_, colIndex) => (
