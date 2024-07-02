@@ -87,7 +87,7 @@ export const expandRange = (from: CellId, to: CellId) => {
   );
 };
 
-export function compareCells(idA: CellId, idB: CellId) {
+export function compareCellIds(idA: CellId, idB: CellId) {
   const aRowNo = idA.match(/\d+$/);
   const bRowNo = idB.match(/\d+$/);
 
@@ -99,14 +99,14 @@ export function compareCells(idA: CellId, idB: CellId) {
   } else if (aRowNo[0] < bRowNo[0]) {
     return -1;
   } else {
-    const aColumnLetters = idA.match(/^[A-Z]/);
-    const bColumnLetters = idB.match(/^[A-Z]/);
+    const [aColumnLetters] = idA.match(/^[A-Z]+/) ?? [];
+    const [bColumnLetters] = idB.match(/^[A-Z]+/) ?? [];
 
     if (!aColumnLetters) throw new Error(`${idA} is not a valid cell id`);
     if (!bColumnLetters) throw new Error(`${idB} is not a valid cell id`);
 
-    const a = colIndexFromLabel(aColumnLetters[0]);
-    const b = colIndexFromLabel(bColumnLetters[0]);
+    const a = colIndexFromLabel(aColumnLetters);
+    const b = colIndexFromLabel(bColumnLetters);
 
     return a - b;
   }
