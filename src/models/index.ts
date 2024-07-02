@@ -1,5 +1,5 @@
 import { createMemo as createComputed, createMemoType } from "../signals";
-import { compareCells, expandRange } from "../utils";
+import { compareCellIds, expandRange } from "../utils";
 
 export interface CoordsInterface {
   row: number;
@@ -22,50 +22,23 @@ export type Cell<T> = {
 };
 
 export class Sheet<T> {
-  cells: Cell<T>[];
+  cells: SortedArray<Cell<T>>;
 
   constructor(cells: Cell<T>[] = []) {
-    this.cells = cells.sort((cellA, cellB) =>
-      compareCells(cellA.cellId, cellB.cellId)
-    );
+    this.cells = new SortedArray(cells.map((cell) => [cell.cellId, cell]));
   }
 
-  insert(cell: Cell<T>): Cell<T> {
-    let i = this.cells.length - 1;
-    for (
-      ;
-      i >= 0 && compareCells(this.cells[i].cellId, cell.cellId) === 1;
-      i--
-    ) {
-      this.cells[i + 1] = this.cells[i];
-    }
-
-    this.cells[i + 1] = cell;
+  set(cell: Cell<T>): Cell<T> {
+    this.cells.set(cell, cell.cellId);
     return cell;
   }
 
   get(id: Cell<T>["cellId"]): Cell<T> | null {
-    let low = 0;
-    let high = this.cells.length - 1;
-    let mid;
-    let middleEl;
-    while (low <= high) {
-      mid = Math.floor((low + high) / 2);
-      middleEl = this.cells[mid];
-
-      if (compareCells(id, middleEl.cellId) === 0) {
-        return middleEl;
-      } else if (compareCells(id, middleEl.cellId) <= -1) {
-        high = mid - 1;
-      } else {
-        low = mid + 1;
-      }
-    }
-    return null;
+    return this.cells.get(id);
   }
 
   getOrDefault(id: Cell<T>["cellId"], defaultCell: Cell<T>): Cell<T> {
-    return this.get(id) || this.insert(defaultCell);
+    return this.get(id) || this.set(defaultCell);
   }
 
   // Excel functions
@@ -125,5 +98,48 @@ export class Sheet<T> {
       );
 
     return this.executeInExcelContext(jsFormula);
+  }
+}
+
+class SortedArray<Item, Key extends string = string> {
+  items: [Key, Item][];
+  comparisonFn: (a: Key, b: Key) => number;
+
+  constructor(
+    items: [Key, Item][] = [],
+    comparisonFn: (a: Key, b: Key) => number = (a, b) => a.localeCompare(b)
+  ) {
+    this.comparisonFn = comparisonFn;
+    this.items = items.sort(([a], [b]) => comparisonFn(a, b));
+  }
+
+  get(key: Key): Item | null {
+    let low = 0;
+    let high = this.items.length - 1;
+    let mid;
+    let middleElKey: Key, middleElItem: Item;
+    while (low <= high) {
+      mid = Math.floor((low + high) / 2);
+      [middleElKey, middleElItem] = this.items[mid];
+
+      if (this.comparisonFn(key, middleElKey) === 0) {
+        return middleElItem;
+      } else if (this.comparisonFn(key, middleElKey) <= -1) {
+        high = mid - 1;
+      } else {
+        low = mid + 1;
+      }
+    }
+    return null;
+  }
+
+  set(item: Item, key: Key): Item {
+    let i = this.items.length - 1;
+    for (; i >= 0 && compareCellIds(this.items[i][0], key) === 1; i--) {
+      this.items[i + 1] = this.items[i];
+    }
+
+    this.items[i + 1] = [key, item];
+    return item;
   }
 }
