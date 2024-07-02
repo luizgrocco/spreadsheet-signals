@@ -83,7 +83,7 @@ function GridVirtualizerDynamic({ sheet }: { sheet: Sheet<number> }) {
 
         if (!cell) {
           if (inputContent === "") return;
-          sheet.insert({
+          sheet.set({
             cellId,
             originalContent: inputContent,
             computed: createMemo(updateFn),
@@ -100,6 +100,33 @@ function GridVirtualizerDynamic({ sheet }: { sheet: Sheet<number> }) {
     []
   );
 
+  const rows = rowVirtualizer.getVirtualItems();
+  const cols = columnVirtualizer.getVirtualItems();
+
+  // const entireRange = (() => {
+  //   const range: string[] = [];
+  //   for (const row of rows) {
+  //     for (const col of cols) {
+  //       if (row.index !== 0 && col.index !== 0)
+  //         range.push(getCellIdFromRowCol(row.index, col.index));
+  //     }
+  //   }
+  //   return range;
+  // })();
+
+  // const range = (() => {
+  //   if (rows.length === 0 || cols.length === 0) return ["", ""];
+
+  //   const [, firstRow] = rows;
+  //   const lastRow = rows[rows.length - 1];
+  //   const [, firstCol] = cols;
+  //   const lastCol = cols[cols.length - 1];
+  //   return [
+  //     getCellIdFromRowCol(firstRow.index, firstCol.index),
+  //     getCellIdFromRowCol(lastRow.index, lastCol.index),
+  //   ];
+  // })();
+
   return (
     <div ref={parentRef} className="relative overflow-auto">
       <div
@@ -109,9 +136,9 @@ function GridVirtualizerDynamic({ sheet }: { sheet: Sheet<number> }) {
           width: `${columnVirtualizer.getTotalSize()}px`,
         }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+        {rows.map((virtualRow) => (
           <React.Fragment key={virtualRow.key}>
-            {columnVirtualizer.getVirtualItems().map((virtualColumn) => (
+            {cols.map((virtualColumn) => (
               <React.Fragment key={virtualColumn.key}>
                 {virtualColumn.index !== 0 && virtualRow.index !== 0 ? (
                   <input
