@@ -22,22 +22,22 @@ export type Cell<T> = {
 };
 
 export class Sheet<T> {
-  cells: SortedArray<Cell<T>>;
+  cells: Map<CellId, Cell<T>>;
 
   constructor(cells: Cell<T>[] = []) {
-    this.cells = new SortedArray(cells.map((cell) => [cell.cellId, cell]));
+    this.cells = new Map(cells.map((cell) => [cell.cellId, cell]));
   }
 
   set(cell: Cell<T>): Cell<T> {
-    this.cells.set(cell, cell.cellId);
+    this.cells.set(cell.cellId, cell);
     return cell;
   }
 
-  get(id: Cell<T>["cellId"]): Cell<T> | null {
+  get(id: CellId): Cell<T> | undefined {
     return this.cells.get(id);
   }
 
-  getOrDefault(id: Cell<T>["cellId"], defaultCell: Cell<T>): Cell<T> {
+  getOrDefault(id: CellId, defaultCell: Cell<T>): Cell<T> {
     return this.get(id) || this.set(defaultCell);
   }
 
@@ -110,6 +110,7 @@ export class Sheet<T> {
   }
 }
 
+// @ts-expect-error
 class SortedArray<Item, Key extends string = string> {
   items: [Key, Item][];
   comparisonFn: (a: Key, b: Key) => number;
@@ -122,7 +123,7 @@ class SortedArray<Item, Key extends string = string> {
     this.items = items.sort(([a], [b]) => comparisonFn(a, b));
   }
 
-  get(key: Key): Item | null {
+  get(key: Key): Item | undefined {
     let low = 0;
     let high = this.items.length - 1;
     let mid;
@@ -139,10 +140,10 @@ class SortedArray<Item, Key extends string = string> {
         low = mid + 1;
       }
     }
-    return null;
+    return undefined;
   }
 
-  set(item: Item, key: Key): Item {
+  set(key: Key, item: Item): Item {
     let i = this.items.length - 1;
     for (; i >= 0 && compareCellIds(this.items[i][0], key) === 1; i--) {
       this.items[i + 1] = this.items[i];
