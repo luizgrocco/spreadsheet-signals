@@ -117,10 +117,13 @@ export const DisplaySheet = () => {
 
   return (
     <div className="w-full h-full flex justify-center flex-col">
-      <div className="h-[5%]">Cabeçalho</div>
-      <div ref={parentRef} className="relative overflow-auto w-full h-[95%]">
+      <div className="w-full h-[143px]"></div>
+      <div
+        ref={parentRef}
+        className="relative overflow-auto w-full flex-1 outline outline-1 outline-gray-300"
+      >
         <div
-          className="relative border border-opacity-30 border-gray-400"
+          className="relative"
           style={{
             height: `${rowVirtualizer.getTotalSize()}px`,
             width: `${columnVirtualizer.getTotalSize()}px`,
@@ -132,7 +135,7 @@ export const DisplaySheet = () => {
                 <React.Fragment key={virtualColumn.key}>
                   {virtualColumn.index !== 0 && virtualRow.index !== 0 ? (
                     <input
-                      className="absolute top-0 left-0 font-normal text-right bg-white border border-opacity-20 border-gray-400 transition-shadow duration-100 ease-in-out hover:shadow-md hover:border-blue-400 focus:outline-none focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-400 focus-within:ring-inset p-1 text-sm"
+                      className="absolute top-0 left-0 font-normal text-right text-sm p-1 outline outline-1 outline-gray-300/60 hover:shadow-all-sides transition-shadow hover:z-10"
                       style={{
                         width: `${virtualColumn.size}px`,
                         height: `${virtualRow.size}px`,
@@ -160,7 +163,7 @@ export const DisplaySheet = () => {
                     />
                   ) : virtualRow.index === 0 && virtualColumn.index === 0 ? (
                     <div
-                      className="sticky z-50 top-0 left-0 font-normal text-center bg-white border border-opacity-20 border-gray-400 p-1 text-sm"
+                      className="sticky z-50 top-0 left-0 outline outline-1 outline-gray-300 bg-white p-1"
                       style={{
                         width: `${virtualColumn.size}px`,
                         height: `${virtualRow.size}px`,
@@ -169,7 +172,7 @@ export const DisplaySheet = () => {
                     />
                   ) : virtualColumn.index === 0 ? (
                     <div
-                      className="mt-[-24px] sticky z-10 left-0 font-normal text-center bg-white border border-opacity-20 border-gray-400 p-1 text-sm"
+                      className="mt-[-22px] sticky z-10 left-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-xs"
                       style={{
                         width: `${virtualColumn.size}px`,
                         height: `${virtualRow.size}px`,
@@ -180,7 +183,7 @@ export const DisplaySheet = () => {
                     </div>
                   ) : (
                     <div
-                      className="mt-[-24px] sticky z-10 top-0 font-normal text-center bg-white border border-opacity-20 border-gray-400 p-1 text-sm"
+                      className="mt-[-22px] sticky z-10 top-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-xs"
                       style={{
                         width: `${virtualColumn.size}px`,
                         height: `${virtualRow.size}px`,
@@ -196,6 +199,7 @@ export const DisplaySheet = () => {
           ))}
         </div>
       </div>
+      <div className="h-[36px]"></div>
     </div>
   );
 };
