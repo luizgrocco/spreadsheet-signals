@@ -12,11 +12,11 @@ export const DisplaySheet = () => {
   const rowVirtualizer = useVirtualizer({
     count: 1000,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 24,
+    estimateSize: () => 22,
+    overscan: 5,
     rangeExtractor: (range) => {
       const [, ...defaultRange] = defaultRangeExtractor(range);
-      const pinnedRange = new Set([0, ...defaultRange]);
-      return [...pinnedRange];
+      return [0, ...defaultRange];
     },
   });
 
@@ -24,11 +24,11 @@ export const DisplaySheet = () => {
     horizontal: true,
     count: 100,
     getScrollElement: () => parentRef.current,
-    estimateSize: (i) => (i === 0 ? 50 : 96),
+    estimateSize: (i) => (i === 0 ? 45 : 101),
+    overscan: 5,
     rangeExtractor: (range) => {
       const [, ...defaultRange] = defaultRangeExtractor(range);
-      const pinnedRange = new Set([0, ...defaultRange]);
-      return [...pinnedRange];
+      return [0, ...defaultRange];
     },
   });
 
