@@ -172,7 +172,7 @@ export const DisplaySheet = () => {
                     />
                   ) : virtualColumn.index === 0 ? (
                     <div
-                      className="mt-[-22px] sticky z-10 left-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-xs"
+                      className="mt-[-22px] sticky z-10 left-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-[11px]"
                       style={{
                         width: `${virtualColumn.size}px`,
                         height: `${virtualRow.size}px`,
@@ -183,7 +183,7 @@ export const DisplaySheet = () => {
                     </div>
                   ) : (
                     <div
-                      className="mt-[-22px] sticky z-10 top-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-xs"
+                      className="mt-[-22px] sticky z-10 top-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-[11px]"
                       style={{
                         width: `${virtualColumn.size}px`,
                         height: `${virtualRow.size}px`,
