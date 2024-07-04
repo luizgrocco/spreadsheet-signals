@@ -70,15 +70,24 @@ export class Sheet<T> {
   // Evaluation in Excel context
   private executeInExcelContext = (jsFormula: string): number => {
     // Agregation functions, which must be in the same context as the `eval`.
+    // @ts-expect-error
     const SUM = this.SUM;
+    // @ts-expect-error
     const COUNT = this.COUNT;
+    // @ts-expect-error
     const MULT = this.MULT;
+    // @ts-expect-error
     const AVG = this.AVG;
+    // @ts-expect-error
     const MAX = this.MAX;
+    // @ts-expect-error
     const MIN = this.MIN;
+    // @ts-expect-error
     const COLS = this.COLS;
+    // @ts-expect-error
     const ROWS = this.ROWS;
 
+    // @ts-expect-error
     const createMemo = createComputed;
 
     return eval(jsFormula);
