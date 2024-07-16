@@ -93,8 +93,12 @@ export class Sheet<T> {
     return eval(jsFormula);
   };
 
-  evaluateFormula(formula: string): number {
-    const jsFormula = formula
+  parseCellInput(input: string): number {
+    const isFormula = input.startsWith("=");
+
+    if (!isFormula) return Number(input);
+
+    const jsFormula = input
       .slice(1)
       // Expand all ranges to 2D matrices of refs.
       .replace(/\b([a-z]+\d+):([a-z]+\d+)\b/gi, (_, from, to) =>
