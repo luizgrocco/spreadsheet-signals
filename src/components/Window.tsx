@@ -64,8 +64,8 @@ const Window = () => {
   );
 
   return (
-    <div className="h-full">
-      <div className="flex flex-row">
+    <div className="h-full flex flex-col">
+      <div className="flex">
         <div className="outline outline-1 outline-gray-300 bg-white p-1 w-[45px] h-[22px]" />
         <AutoSizer>
           {({ width }) => (
@@ -84,7 +84,7 @@ const Window = () => {
           )}
         </AutoSizer>
       </div>
-      <div className="flex h-full">
+      <div className="h-full">
         <AutoSizer>
           {({ height }) => (
             <Header
@@ -111,7 +111,7 @@ const Window = () => {
               rowCount={1000}
               rowHeight={22}
               width={width - 45}
-              className="outline outline-1 outline-gray-300"
+              className="outline outline-1 outline-gray-300 left-[45px]"
             >
               {InputCell}
             </Grid>
