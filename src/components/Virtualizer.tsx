@@ -1,40 +1,23 @@
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
-import React, { FocusEvent, KeyboardEvent, useCallback, useRef } from "react";
+import React, {
+  FC,
+  FocusEvent,
+  KeyboardEvent,
+  useCallback,
+  useRef,
+} from "react";
 import { colAsLabel, getCellIdFromRowCol } from "../utils";
-import { createEffect, createMemo, createSignal } from "../signals";
+import { createMemo } from "../signals";
 import { Sheet } from "../models";
 
 const sheet = new Sheet<number>();
 
-const [focusSignal, setFocusSignal] = createSignal([1, 1]);
-const [previousFocusSignal, setPreviousFocusSignal] = createSignal([1, 1]);
+type VirtualizerProps = {
+  focusedCell: [number, number];
+  setFocusedCell: (cell: [number, number]) => void;
+};
 
-createEffect(() => {
-  // De-select previous cell's Header row and column
-  const [previousRow, previousCol] = previousFocusSignal();
-
-  const previousHeaderColumn = document.getElementById(
-    `row-0-col-${previousCol}`
-  );
-  const previousHeaderRow = document.getElementById(`row-${previousRow}-col-0`);
-  if (previousHeaderColumn)
-    previousHeaderColumn.style.backgroundColor = "white";
-  if (previousHeaderRow) previousHeaderRow.style.backgroundColor = "white";
-
-  // Select current cell's Header row and column
-  const [row, col] = focusSignal();
-
-  const headerColumn = document.getElementById(`row-0-col-${col}`);
-  const headerRow = document.getElementById(`row-${row}-col-0`);
-  if (headerColumn) headerColumn.style.backgroundColor = "#D3E3FD";
-  if (headerRow) headerRow.style.backgroundColor = "#D3E3FD";
-
-  // If cell is the same as previous cell, do nothing
-  if (previousCol === col && previousRow === row) return;
-  setPreviousFocusSignal([row, col]);
-});
-
-const Virtualizer = () => {
+const Virtualizer: FC<VirtualizerProps> = ({ focusedCell, setFocusedCell }) => {
   const parentRef = useRef(null);
   const rowVirtualizer = useVirtualizer({
     count: 1000,
@@ -49,7 +32,7 @@ const Virtualizer = () => {
 
   const columnVirtualizer = useVirtualizer({
     horizontal: true,
-    count: 50,
+    count: 100,
     getScrollElement: () => parentRef.current,
     estimateSize: (i) => (i === 0 ? 45 : 101),
     overscan: 5,
@@ -62,7 +45,7 @@ const Virtualizer = () => {
   const focusHandler = useCallback(
     (rowIndex: number, colIndex: number) =>
       (event: FocusEvent<HTMLInputElement>) => {
-        setFocusSignal([rowIndex, colIndex]);
+        setFocusedCell([rowIndex, colIndex]);
         const cellId = getCellIdFromRowCol(rowIndex, colIndex);
         const cell = sheet.get(cellId);
         if (cell) {
@@ -114,6 +97,8 @@ const Virtualizer = () => {
   const rows = rowVirtualizer.getVirtualItems();
   const cols = columnVirtualizer.getVirtualItems();
 
+  const [focusedCellRow, focusedCellCol] = focusedCell;
+
   return (
     <div
       ref={parentRef}
@@ -135,6 +120,10 @@ const Virtualizer = () => {
                     className="absolute top-0 left-0 font-normal text-right text-sm p-1 outline outline-1 outline-gray-300/60 hover:shadow-all-sides transition-shadow hover:z-10 h-[22px] w-[101px]"
                     style={{
                       transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
+                      ...(focusedCellCol === virtualColumn.index &&
+                      focusedCellRow === virtualRow.index
+                        ? { border: "2px solid #1A73E8", zIndex: 5 }
+                        : {}),
                     }}
                     onKeyDown={onKeyDownHandler}
                     onFocus={focusHandler(
@@ -153,7 +142,7 @@ const Virtualizer = () => {
                   />
                 ) : virtualRow.index === 0 && virtualColumn.index === 0 ? (
                   <div
-                    className="sticky z-50 top-0 left-0 outline outline-1 outline-gray-300 bg-white p-1 w-[45px] h-[22px]"
+                    className="sticky z-50 top-0 left-0 outline outline-1 outline-gray-300 bg-[#F8F9FA] p-1 w-[45px] h-[22px]"
                     onClick={() => console.log(sheet)}
                   />
                 ) : virtualColumn.index === 0 ? (
@@ -162,6 +151,11 @@ const Virtualizer = () => {
                     className="mt-[-22px] sticky z-10 left-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-[11px] w-[45px] h-[22px]"
                     style={{
                       transform: `translateY(${virtualRow.start}px)`,
+                      ...(focusedCellRow === virtualRow.index
+                        ? {
+                            backgroundColor: "#D3E3FD",
+                          }
+                        : {}),
                     }}
                   >
                     {virtualRow.index}
@@ -172,6 +166,11 @@ const Virtualizer = () => {
                     className="mt-[-22px] sticky z-10 top-0 font-normal text-center bg-white outline outline-1 outline-gray-300 p-1 text-[11px] w-[101px] h-[22px]"
                     style={{
                       transform: `translateX(${virtualColumn.start}px) `,
+                      ...(focusedCellCol === virtualColumn.index
+                        ? {
+                            backgroundColor: "#D3E3FD",
+                          }
+                        : {}),
                     }}
                   >
                     {colAsLabel(virtualColumn.index)}
