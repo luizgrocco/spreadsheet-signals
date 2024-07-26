@@ -1,35 +1,26 @@
-import Window from "./Window";
+import { useState } from "react";
+import Virtualizer from "./Virtualizer";
+import { FxIcon } from "./icons/FxIcon";
+import { colAsLabel } from "../utils";
 
 export const DisplaySheet = () => {
+  const [focusedCell, setFocusedCell] = useState<[number, number]>([1, 1]);
+  const [focusedCellRow, focusedCellCol] = focusedCell;
+
   return (
     <div className="w-full h-full flex justify-center flex-col">
-      <div className="w-full h-[143px]"></div>
-      <Window />
+      <div className="w-full h-[143px] flex flex-col">
+        <div className="w-full flex-1 bg-[#F9FBFD]"></div>
+        <div className="w-full h-[29px] flex items-center">
+          <div className="w-24">{`${colAsLabel(focusedCellCol)}${focusedCellRow}`}</div>
+          <div className="w-px h-4 bg-[#C7C7C7]"></div>
+          <div className="flex">
+            <FxIcon />
+          </div>
+        </div>
+      </div>
+      <Virtualizer focusedCell={focusedCell} setFocusedCell={setFocusedCell} />
       <div className="h-[36px]"></div>
     </div>
   );
 };
-
-// const entireRange = (() => {
-//   const range: string[] = [];
-//   for (const row of rows) {
-//     for (const col of cols) {
-//       if (row.index !== 0 && col.index !== 0)
-//         range.push(getCellIdFromRowCol(row.index, col.index));
-//     }
-//   }
-//   return range;
-// })();
-
-// const range = (() => {
-//   if (rows.length === 0 || cols.length === 0) return ["", ""];
-
-//   const [, firstRow] = rows;
-//   const lastRow = rows[rows.length - 1];
-//   const [, firstCol] = cols;
-//   const lastCol = cols[cols.length - 1];
-//   return [
-//     getCellIdFromRowCol(firstRow.index, firstCol.index),
-//     getCellIdFromRowCol(lastRow.index, lastCol.index),
-//   ];
-// })();
