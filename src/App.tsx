@@ -1,9 +1,9 @@
-import { DisplaySheet } from "./components/DisplaySheet";
+import { Spreadsheet } from "./components/Spreadsheet";
 
 function App() {
   return (
     <div className="h-full w-full flex flex-col">
-      <DisplaySheet />
+      <Spreadsheet />
     </div>
   );
 }
