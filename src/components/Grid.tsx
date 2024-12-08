@@ -6,14 +6,15 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { colAsLabel, getCellIdFromRowCol } from "../utils";
+import { colAsLabel, getCellIdFromRowCol, rowColFromCellId } from "../utils";
 import { createMemo } from "../signals";
-import { Sheet } from "../models";
+import { CellId, Sheet } from "../models";
+import { createSpreadsheetFormulaParser } from "../parser";
 
 type GridProps = {
   sheet: Sheet<number>;
-  focusedCell: [number, number];
-  setFocusedCell: (cell: [number, number]) => void;
+  focusedCell: CellId;
+  setFocusedCell: (cellId: CellId) => void;
 };
 
 export const Grid: FC<GridProps> = ({ sheet, focusedCell, setFocusedCell }) => {
@@ -44,13 +45,12 @@ export const Grid: FC<GridProps> = ({ sheet, focusedCell, setFocusedCell }) => {
   const focusHandler = useCallback(
     (rowIndex: number, colIndex: number) =>
       (event: FocusEvent<HTMLInputElement>) => {
-        setFocusedCell([rowIndex, colIndex]);
         const cellId = getCellIdFromRowCol(rowIndex, colIndex);
+        setFocusedCell(cellId);
         const cell = sheet.get(cellId);
         if (cell) {
           event.target.value = cell.originalContent;
         }
-        event.target.select();
       },
     []
   );
@@ -62,6 +62,11 @@ export const Grid: FC<GridProps> = ({ sheet, focusedCell, setFocusedCell }) => {
     []
   );
 
+  const spreadsheetFormulaParser = useCallback(
+    createSpreadsheetFormulaParser(sheet),
+    [sheet]
+  );
+
   const blurHandler = useCallback(
     (rowIndex: number, colIndex: number) =>
       (event: FocusEvent<HTMLInputElement>) => {
@@ -70,9 +75,15 @@ export const Grid: FC<GridProps> = ({ sheet, focusedCell, setFocusedCell }) => {
 
         const inputContent = event.target.value;
         const updateFn = () => {
-          const value = sheet.parseCellInput(inputContent);
-          event.target.value = String(value);
-          return value;
+          const [result] = spreadsheetFormulaParser(inputContent);
+
+          if (result.ok) {
+            event.target.value = String(result.value);
+            return result.value;
+          }
+
+          // TODO: Should error if result is not ok
+          return 0;
         };
 
         if (!cell) {
@@ -96,7 +107,8 @@ export const Grid: FC<GridProps> = ({ sheet, focusedCell, setFocusedCell }) => {
   const rows = rowVirtualizer.getVirtualItems();
   const cols = columnVirtualizer.getVirtualItems();
 
-  const [focusedCellRow, focusedCellCol] = focusedCell;
+  const { row: focusedCellRow, col: focusedCellCol } =
+    rowColFromCellId(focusedCell);
 
   return (
     <div

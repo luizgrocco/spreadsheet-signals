@@ -197,5 +197,5 @@ export class Runtime {
 export const createSignal = Runtime.createSignal;
 export const createEffect = Runtime.createEffect;
 export const createMemo = Runtime.createMemo;
-export type createSignalType<T> = ReturnType<typeof createSignal<T>>;
-export type createMemoType<T> = ReturnType<typeof createMemo<T>>;
+export type CreateSignalType<T> = ReturnType<typeof createSignal<T>>;
+export type CreateMemoType<T> = ReturnType<typeof createMemo<T>>;

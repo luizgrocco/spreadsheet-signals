@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Grid } from "./Grid";
 import { FormulaBar } from "./FormulaBar";
 import { SheetTabBar } from "./SheetTabBar";
-import { Sheet } from "../models";
+import { CellId, Sheet } from "../models";
+import { createMemo } from "../signals";
 
-const sheet = new Sheet<number>();
+const sheet = new Sheet<number>({
+  originalContent: "",
+  computed: createMemo(() => 0),
+});
 
 export const Spreadsheet = () => {
-  const [focusedCell, setFocusedCell] = useState<[number, number]>([1, 1]);
+  const [focusedCell, setFocusedCell] = useState<CellId>("A1");
 
   return (
     <div className="w-full h-full flex justify-center flex-col">
@@ -18,7 +22,11 @@ export const Spreadsheet = () => {
             <div></div>
           </div>
         </div>
-        <FormulaBar sheet={sheet} focusedCell={focusedCell} />
+        <FormulaBar
+          sheet={sheet}
+          focusedCell={focusedCell}
+          setFocusedCell={setFocusedCell}
+        />
       </div>
       <Grid
         sheet={sheet}
